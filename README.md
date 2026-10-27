@@ -3,9 +3,12 @@
 - **original-plantilla**: Proyecto inicial original, base plantilla 
     - Accesibilidad en interfaces.docx.pdf -> Instrucciones del proyecto 
     - https://interfaces-de-usuario.netlify.app 
-- **resulto**: Proyecto resulto 
+- **resulto**: Proyecto resuelto (unicamente la entrega: carpeta public)
     - https://interfaces-de-usuario-resuelto.netlify.app
-    ## Resolución de los ejercicios evaluables (E1–E7)
+- **terminado:** Proyecto resulto + datos de la plantilla. Es decir, proyecto plantilla con mi carpeta public (Es en la que está resuelto). De esta forma se puede probar la app completa con tados de prueba. 
+    - https://interfaces-de-usuario-completo.netlify.app 
+
+## Resolución de los ejercicios evaluables (E1–E7)
 
 Autor: Óscar Renilla Rodríguez
 

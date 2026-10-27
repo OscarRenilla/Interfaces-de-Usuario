@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<!-- Autor: Óscar Renilla Rodríguez -->
+<!-- Declara que esto es una pagina HTML5 -->
+<html lang="es">
+<!-- Inicio del documento, idioma espanol -->
+<head>
+  <!-- HEAD: informacion que NO se ve en la pagina -->
+  <meta charset="UTF-8">
+  <!-- Permite tildes y enyes -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Hace que la pagina se adapte al movil (responsive) -->
+  <title>E6 Pruebas, docs y paquete</title>
+  <!-- Titulo de la pestana del navegador -->
+  <link rel="stylesheet" href="/css/estilos.css">
+  <!-- Carga los estilos (colores, tamanos) desde el fichero CSS -->
+<script src="/js/errores.js"></script></head>
+<body>
+  <!-- BODY: todo lo que SI se ve en la pagina -->
+  <div class="nav"><a href="/index.html">&#127968; Inicio</a><a href="/evaluables/e5-componente-insignia.html">&larr; E5</a><a href="/evaluables/e7-proyecto-integrado.html">E7 &rarr;</a></div>
+  <!-- Barra de navegacion: volver al inicio, ejercicio anterior y siguiente -->
+  <h1>E6 Pruebas, docs y paquete</h1>
+  <!-- Titulo grande de la pagina -->
+  <div class="caja"><b>Criterios:</b> RA3 e, f, g. Completa los TODO siguiendo el enunciado completo.</div>
+  <!-- Caja informativa con los criterios de evaluacion que trabaja el ejercicio -->
+<section class="caja enunciado"><h2>Que debes hacer, paso a paso</h2><p>Archivo: <code>public/evaluables/e6-pruebas-paquete.html</code>. Solo modifica frontend. Lee el resuelto relacionado antes de empezar.</p><ol><li>Primero termina E5. Abre E6 e importa test e igual desde /componentes/pruebas.js.</li><li>Cada test debe crear su propia insignia, insertarla y comprobar un caso con igual(real,esperado).</li><li>Prueba 1: sin atributo devuelve pending. Prueba 2: estado paid devuelve paid.</li><li>Prueba 3: estado xyz devuelve pending. Prueba 4: un clic cambia pending a paid y emite cambio con detail.estado paid.</li><li>Anade pruebas para el ciclo completo, el cambio visual y que reconectar el componente no duplique eventos.</li><li>Documenta propiedades, defecto, evento, ejemplo HTML y pruebas en public/componentes/README.md.</li><li>Desde la raiz ejecuta npm run empaquetar. Crea una pagina con unicamente /dist/erp-componentes.js y verifica ambas etiquetas. No cargues a la vez paquete y fuentes originales.</li></ol><h3>Entrega</h3><p>Entrega tu HTML, los componentes modificados y una captura de la prueba. Explica los errores que controlas y comenta cada paso. No incluyas soluciones del profesor ni node_modules.</p><h3>Comprobacion final</h3><p>La consola no debe mostrar errores inesperados. Prueba tambien una entrada vacia, un permiso denegado o una lista sin resultados. Los TODO son intencionados: el evaluable no esta terminado hasta que los completes.</p></section><div class="caja"><button id="hablar">Hablar (una frase)</button><button id="iniciar">Activar camara</button><p id="msg" role="status" aria-live="polite"></p><p><a href="/componentes/prueba-paquete.html">Probar el paquete /dist/erp-componentes.js</a></p><ul id="salida"></ul><div id="zonaPrueba"></div></div>
+  <!-- Aqui acaba el HTML visible; ahora viene el codigo JavaScript (el "cerebro") -->
+<script src="/js/logica.js"></script><script src="/js/ayudas.js"></script>
+  <script type="module">
+import { test, igual } from '/componentes/pruebas.js'; // Mini sistema de pruebas: test e igual.
+await import('/componentes/erp-insignia.js'); // Cargamos el componente a probar.
+const $ = id => document.getElementById(id); // Busca un elemento por su id.
+$('hablar').style.display = 'none'; // E6 no usa voz: ocultamos el boton.
+$('iniciar').style.display = 'none'; // Ni camara: ocultamos el boton.
+const salida = $('salida'); // Lista donde salen los resultados.
+const zona = $('zonaPrueba'); // Zona donde se insertan los componentes de prueba.
+
+// Crea una insignia nueva (con estado opcional), la inserta en la zona y la devuelve.
+function crear(estado) {
+  const t = document.createElement('erp-insignia'); // Componente nuevo para cada prueba.
+  if (estado !== undefined) t.setAttribute('estado', estado); // Si nos dan estado, lo ponemos como atributo.
+  zona.appendChild(t); // Lo anadimos a la zona de pruebas.
+  return t; // Lo devolvemos.
+}
+
+test('el estado por defecto es pending', () => { // Prueba 1.
+  const t = crear(); // Insignia sin atributo.
+  igual(t.estado, 'pending'); // Debe valer pending.
+}, salida);
+
+test('lee el estado del atributo (paid)', () => { // Prueba 2.
+  const t = crear('paid'); // Insignia con estado="paid".
+  igual(t.estado, 'paid'); // Debe leer paid.
+}, salida);
+
+test('un estado invalido (xyz) devuelve pending', () => { // Prueba 3.
+  const t = crear('xyz'); // Insignia con un estado que no existe.
+  igual(t.estado, 'pending'); // Debe volver al valor por defecto.
+}, salida);
+
+test('al hacer clic lanza "cambio" y pasa a paid', () => { // Prueba 4.
+  const t = crear(); // Insignia en pending.
+  let recibido = ''; // Aqui guardaremos el estado que llegue en el evento.
+  t.addEventListener('cambio', (e) => { recibido = e.detail.estado; }); // Escuchamos el evento propio.
+  t.click(); // Simulamos un clic.
+  igual(recibido, 'paid'); // El evento debe traer paid...
+  igual(t.estado, 'paid'); // ...y el componente debe estar en paid.
+}, salida);
+
+test('el ciclo completo vuelve a pending', () => { // Prueba extra: ciclo.
+  const t = crear(); // Insignia en pending.
+  const vistos = []; // Estados por los que pasa.
+  t.addEventListener('cambio', (e) => vistos.push(e.detail.estado)); // Anotamos cada estado.
+  for (let i = 0; i < 4; i++) t.click(); // Cuatro clics: una vuelta entera.
+  igual(vistos.join(','), 'paid,shipped,cancelled,pending'); // Orden correcto, y desde cancelled vuelve a pending.
+}, salida);
+
+test('el cambio se ve en el dibujo (texto y color)', () => { // Prueba extra: cambio visual.
+  const t = crear(); // Insignia en pending.
+  t.click(); // Pasa a paid.
+  igual(t.shadowRoot.querySelector('span').textContent, 'paid'); // El texto del span cambia.
+  igual(t.shadowRoot.querySelector('style').textContent.includes('#d6f5e0'), true); // Y usa el fondo verde de paid.
+}, salida);
+
+test('reconectar no duplica los eventos', () => { // Prueba extra: un unico listener.
+  const t = crear(); // Insignia conectada.
+  zona.removeChild(t); // La quitamos de la pagina...
+  zona.appendChild(t); // ...y la volvemos a insertar (se ejecuta otra vez connectedCallback).
+  let n = 0; // Contador de eventos recibidos.
+  t.addEventListener('cambio', () => n++); // Contamos los eventos.
+  t.click(); // Un solo clic.
+  igual(n, 1); // Debe llegar UN solo evento, no dos.
+}, salida);
+
+  </script>
+</body>
+</html>

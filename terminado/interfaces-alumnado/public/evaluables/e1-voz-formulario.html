@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<!-- Autor: Óscar Renilla Rodríguez -->
+<!-- Declara que esto es una pagina HTML5 -->
+<html lang="es">
+<!-- Inicio del documento, idioma espanol -->
+<head>
+  <!-- HEAD: informacion que NO se ve en la pagina -->
+  <meta charset="UTF-8">
+  <!-- Permite tildes y enyes -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Hace que la pagina se adapte al movil (responsive) -->
+  <title>E1 Dictar un cliente</title>
+  <!-- Titulo de la pestana del navegador -->
+  <link rel="stylesheet" href="/css/estilos.css">
+  <!-- Carga los estilos (colores, tamanos) desde el fichero CSS -->
+<script src="/js/errores.js"></script></head>
+<body>
+  <!-- BODY: todo lo que SI se ve en la pagina -->
+  <div class="nav"><a href="/index.html">&#127968; Inicio</a><a href="/resueltos/r7-ar-mano.html">&larr; R7</a><a href="/evaluables/e2-voz-productos.html">E2 &rarr;</a></div>
+  <!-- Barra de navegacion: volver al inicio, ejercicio anterior y siguiente -->
+  <h1>E1 Dictar un cliente</h1>
+  <!-- Titulo grande de la pagina -->
+  <div class="caja"><b>Criterios:</b> RA2 c. Completa los TODO siguiendo el enunciado completo.</div>
+  <!-- Caja informativa con los criterios de evaluacion que trabaja el ejercicio -->
+<section class="caja enunciado"><h2>Que debes hacer, paso a paso</h2><p>Archivo: <code>public/evaluables/e1-voz-formulario.html</code>. Solo modifica frontend. Lee el resuelto relacionado antes de empezar.</p><ol><li>Pulsa Hablar antes de CADA frase. Di nombre Ana, ciudad Madrid y email ana arroba mail punto es. Revisa lo escrito antes de guardar.</li><li>Dentro de onresult limpia la frase con toLowerCase y trim. Usa startsWith para identificar nombre, ciudad o email.</li><li>Usa slice(7) para nombre y ciudad, y slice(6) para email. Asigna el resultado a .value del input correspondiente.</li><li>Convierte las palabras arroba y punto en @ y .; elimina espacios del correo.</li><li>Al decir guardar, recoge los tres .value. Comprueba que el nombre y la ciudad no esten vacios y que el email sea valido.</li><li>Envia fetch a /api/customers con POST, cabecera Content-Type application/json y body JSON.stringify({name,city,email}). Comprueba respuesta.ok.</li><li>Prueba Ana, Madrid y ana@mail.es. Abre /api/customers para comprobar el registro. Un error de red debe mostrarse sin perder lo escrito.</li></ol><h3>Entrega</h3><p>Entrega tu HTML, los componentes modificados y una captura de la prueba. Explica los errores que controlas y comenta cada paso. No incluyas soluciones del profesor ni node_modules.</p><h3>Comprobacion final</h3><p>La consola no debe mostrar errores inesperados. Prueba tambien una entrada vacia, un permiso denegado o una lista sin resultados. Los TODO son intencionados: el evaluable no esta terminado hasta que los completes.</p></section><div class="caja"><button id="hablar">Hablar (una frase)</button><button id="iniciar">Activar camara</button><p id="msg" role="status" aria-live="polite"></p><label for="name">Nombre</label><input id="name"><label for="city">Ciudad</label><input id="city"><label for="email">Correo</label><input id="email" type="email"><button id="guardar">Guardar con raton</button></div>
+  <!-- Aqui acaba el HTML visible; ahora viene el codigo JavaScript (el "cerebro") -->
+<script src="/js/logica.js"></script><script src="/js/ayudas.js"></script>
+  <script type="module">
+const $ = id => document.getElementById(id); // Busca un elemento por su id.
+$('iniciar').style.display = 'none'; // E1 solo usa la voz: ocultamos el boton de camara que no se usa.
+
+// TODO 3: guardar el cliente en el servidor.
+async function guardar() { // async porque usamos await con fetch.
+  const datos = { // Objeto { name, city, email } con lo que hay en los inputs.
+    name: $('name').value.trim(), // Nombre sin espacios sobrantes.
+    city: $('city').value.trim(), // Ciudad sin espacios sobrantes.
+    email: $('email').value.trim(), // Email sin espacios sobrantes.
+  };
+  if (!datos.name || !datos.city) { $('msg').textContent = 'Falta el nombre o la ciudad.'; return; } // Nombre y ciudad obligatorios.
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datos.email)) { $('msg').textContent = 'El email no es valido.'; return; } // Formato basico texto@texto.texto
+  try { // Si falla la red, lo capturamos sin perder lo escrito.
+    const r = await fetch('/api/customers', { // Peticion al servidor.
+      method: 'POST', // POST = crear un cliente nuevo.
+      headers: { 'Content-Type': 'application/json' }, // Avisamos de que enviamos JSON.
+      body: JSON.stringify(datos), // Convertimos el objeto a texto JSON.
+    });
+    $('msg').textContent = r.ok ? 'Guardado' : 'Error al guardar (HTTP ' + r.status + ')'; // Mensaje segun r.ok.
+  } catch (e) { // Error de red (servidor parado, sin conexion...).
+    $('msg').textContent = 'Error de red: ' + e.message + '. Lo escrito se conserva, prueba otra vez.'; // Los inputs no se borran.
+  }
+}
+
+// TODO 1 y 2: interpretar cada frase dictada (se llama una vez por cada pulsacion de "Hablar").
+function procesar(frase) {
+  const f = Logica.normalizar(frase).replace(/^e-mail /, 'email '); // Minusculas, sin punto final; "e-mail" se trata como "email".
+  if (f.startsWith('nombre ')) { // TODO 1: empieza por "nombre " (con espacio al final).
+    $('name').value = f.slice(7); // "nombre " tiene 7 letras: el resto es el nombre.
+    $('msg').textContent = 'Nombre anotado.'; // Confirmacion para el usuario.
+  } else if (f.startsWith('ciudad ')) { // TODO 2: "ciudad " tambien tiene 7 letras.
+    $('city').value = f.slice(7); // El resto es la ciudad.
+    $('msg').textContent = 'Ciudad anotada.'; // Confirmacion.
+  } else if (f.startsWith('email ')) { // TODO 2: "email " tiene 6 letras.
+    $('email').value = f.slice(6) // El resto es el correo, tal cual lo escribe el navegador...
+      .replace(/ arroba /g, '@') // ..." arroba " pasa a "@".
+      .replace(/ punto /g, '.') // ...y " punto " pasa a ".".
+      .replace(/\s+/g, ''); // Quitamos los espacios que queden.
+    $('msg').textContent = 'Email anotado.'; // Confirmacion.
+  } else if (f === 'guardar') { // TODO 3: la frase es exactamente "guardar".
+    return guardar(); // Devolvemos la promesa para que Ayudas.voz capture sus errores.
+  } else { // Cualquier otra frase.
+    $('msg').textContent = 'No entendido: "' + f + '". Di nombre, ciudad, email o guardar.'; // Aviso.
+  }
+}
+
+Ayudas.voz($('hablar'), procesar, $('msg')); // Conecta el boton "Hablar": una frase por pulsacion.
+$('guardar').onclick = guardar; // El boton de raton hace lo mismo que decir "guardar".
+
+  </script>
+</body>
+</html>

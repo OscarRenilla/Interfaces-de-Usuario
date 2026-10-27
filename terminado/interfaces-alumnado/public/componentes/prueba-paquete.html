@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<!-- Autor: Óscar Renilla Rodríguez -->
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>E6 Prueba del paquete</title>
+  <link rel="stylesheet" href="/css/estilos.css">
+  <script src="/js/errores.js"></script>
+</head>
+<body>
+  <div class="nav"><a href="/index.html">&#127968; Inicio</a><a href="/evaluables/e6-pruebas-paquete.html">&larr; E6</a></div>
+  <h1>E6 Prueba del paquete</h1>
+  <div class="caja">
+    <p>Esta pagina carga UNICAMENTE <code>/dist/erp-componentes.js</code> (genera el paquete con <code>npm run empaquetar</code>).</p>
+    <erp-tarjeta titulo="Clientes" valor="3"></erp-tarjeta>
+    <br>
+    <erp-insignia estado="paid"></erp-insignia>
+    <ul id="resultado"></ul>
+  </div>
+  <!-- Solo el paquete: nunca junto a los ficheros originales (se registrarian dos veces las etiquetas) -->
+  <script src="/dist/erp-componentes.js"></script>
+  <script>
+    // Comprueba que el navegador conoce las dos etiquetas del paquete.
+    ['erp-tarjeta', 'erp-insignia'].forEach((nombre) => { // Para cada etiqueta esperada...
+      const li = document.createElement('li'); // ...creamos una linea...
+      const registrada = !!customElements.get(nombre); // ...miramos si esta registrada...
+      li.textContent = (registrada ? 'OK - ' : 'FALLA - ') + nombre + ' esta en el paquete'; // ...escribimos el resultado...
+      li.className = registrada ? 'ok' : 'mal'; // ...en verde o en rojo...
+      document.getElementById('resultado').appendChild(li); // ...y lo anadimos a la lista.
+    });
+  </script>
+</body>
+</html>
